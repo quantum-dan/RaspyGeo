@@ -41,3 +41,68 @@ class Geometry(object):
             "banks":
                 (self.banks[0] + self.offset, self.banks[1] + self.offset)
             }
+
+
+class Reach(object):
+    # Define a Reach class to easily track datums, etc.
+    def __init__(self, name, geometries):
+        # Geometries should be a dictionary of {station: geometry}
+        self.name = name
+        self.geometries = geometries  # dictionary
+        # Store both numeric value (for sorting, etc) and string value
+        # for exact identification (no float errors)
+        self.stations = {float(x): x for x in geometries}
+        self.upstream = max(self.stations)
+        self.downstream = min(self.stations)
+        self.re_datums()  # compute datums
+
+    def re_datums(self):
+        # Recalculate datums after changing geometries
+        # Make sure they are in order
+        self.datums = [self.geometries[self.stations[x]].datum
+                       for x in sorted(self.stations)]
+
+    def get_sta(self, first=None, last=None):
+        # Retrieve ordered, _numerical_ list of stations (i.e. float not str)
+        first = min(self.stations) if first is None else first
+        last = max(self.stations) if last is None else last
+        return [sta
+                for sta in sorted(self.stations)
+                if sta >= first and sta <= last]
+
+    def set_datums(self, delta, first=None, last=None):
+        # Update datums by a specified amount
+        # If first/last are not specified, will use upstream and downstream
+        # stations.
+        # Order is from downstream to upstream.
+        to_update = [self.stations[sta] for sta in self.get_sta(first, last)]
+        if len(to_update) != len(delta) and len(delta) != 1:
+            raise ValueError("length of delta != number of stations")
+        for ix in range(len(to_update)):
+            self.geometries[to_update[ix]].datum += (
+                delta[ix] if len(delta) != 1 else delta[0])
+        self.re_datums()
+        return self
+
+    def adjust_datums(self, down_adj, up_adj=None, first=None, last=None):
+        # Update datums from first to last.
+        # If up_adj is None, update everything by down_adj.
+        # Otherwise, linearly interpolate the adjustment based on the lengths.
+        if up_adj is None:
+            return self.set_datums([down_adj], first, last)
+        else:
+            to_update = self.get_sta(first, last)
+            tot_len = max(to_update) - min(to_update)
+            # For interpolation
+            slope = (up_adj - down_adj) / tot_len
+            lengths = [sta - to_update[0] for sta in to_update]
+            delta = [down_adj + slope * dist for dist in lengths]
+            return self.set_datums(delta, first, last)
+
+    def adjust_geometry(self, geofun, first=None, last=None):
+        # Apply a geometry adjustment function to selected cross-sections
+        to_update = [self.stations[sta] for sta in self.get_sta(first, last)]
+        for ud in to_update:
+            self.geometries[ud] = geofun(self.geometries[ud])
+        self.re_datums()
+        return self
