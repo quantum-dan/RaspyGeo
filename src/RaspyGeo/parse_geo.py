@@ -75,16 +75,23 @@ def make_geo(text):
     # Geometry arguments: coordinates [(x, y)], roughness [(x, mann)],
     # bank stations (left, right)
     statext = rest_lines(text[text.find("#Sta/Elev="):text.find("#Mann=")])
-    manntext = rest_lines(text[text.find("#Mann="):text.find("Bank Sta=")])
+    # Need to work with remaining text for Manning's.
+    rtx = rest_lines(text[text.find("#Mann="):])
+    manntext = rtx[:rtx.find("=")]
+    # Weirdness: cut off at the _last_ newline
+    manntext = manntext[:(len(manntext) - manntext[::-1].find("\n")-1)]
     banktext = first_line(text[text.find("Bank Sta="):]).split("=")[1]
     # Process station data
-    stalist = [x for x in statext.split(" ") if x]
+    # Excluding very long chunks: sometimes when one is too long it spills
+    # over; this tends to occur in high-density survey data, so excluding
+    # one point should not be a huge problem.
+    stalist = [x for x in statext.split(" ") if x and len(x) <= 7]
     sta = [(float(stalist[i]), float(stalist[i+1]))
            for i in range(0, len(stalist)-1, 2)]
     # Process Manning's data
     mannlist = [x for x in manntext.split(" ") if x]
     mann = [(float(mannlist[i]), float(mannlist[i+1]))
-            for i in range(0, len(stalist)-2, 3)]
+            for i in range(0, len(mannlist)-2, 3)]
     # Proces bank stations
     banklist = banktext.split(",")
     banks = (float(banklist[0]), float(banklist[1]))
@@ -104,7 +111,7 @@ def sep_inner(text):
         }
 
 
-def separate(file):
+def parse(file):
     # Read the file path, then separate it into
     # {reach: {river station: geometry}}
     with open(file, "r") as f:
