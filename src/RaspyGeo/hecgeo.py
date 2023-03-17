@@ -10,6 +10,15 @@ Define HEC-RAS geometry class(es) as a standardized format.
 """
 
 
+def rs2float(rs):
+    # Convert river station to float (because interpolated
+    # stations are nnn.*)
+    if rs[-1:] == "*":
+        return float(rs[:-1])
+    else:
+        return float(rs)
+
+
 class Geometry(object):
     # For consistency, all coordinates are adjusted so that 0 is the left
     # extreme and 0 is the minimum elevation.  However, datum and offset
@@ -51,10 +60,15 @@ class Reach(object):
         self.geometries = geometries  # dictionary
         # Store both numeric value (for sorting, etc) and string value
         # for exact identification (no float errors)
-        self.stations = {float(x): x for x in geometries}
+        self.stations = {rs2float(x): x for x in geometries}
         self.upstream = max(self.stations)
         self.downstream = min(self.stations)
         self.re_datums()  # compute datums
+
+    def __repr__(self):
+        return "Reach %s: length %.2f units with %d cross-sections" % (
+            self.name.strip(), max(self.stations) - min(self.stations),
+            len(self.stations))
 
     def re_datums(self):
         # Recalculate datums after changing geometries

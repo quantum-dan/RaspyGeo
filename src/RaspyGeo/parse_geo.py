@@ -59,7 +59,7 @@ To write, it will be necessary to:
 """
 
 
-from hecgeo import Geometry
+from hecgeo import Geometry, Reach
 
 
 def first_line(text):
@@ -98,26 +98,26 @@ def make_geo(text):
     return Geometry(sta, mann, banks)
 
 
-def sep_inner(text):
-    # Reach-specific text => {river station: geometry}
+def sep_inner(name, text):
+    # Reach-specific text => Reach
     # Reach-specific text is between two pairs of "River Reach=", excluding
     # that particular row.
     def get_rs(block):
         # First line will be `1 ,43505   ,139,139,139` or similar
         return first_line(block).split(",")[1].strip()
-    return {
+    return Reach(name, {
         get_rs(x): make_geo(rest_lines(x))
         for x in text.split("Type RM Length L Ch R = ")[1:]
-        }
+        })
 
 
 def parse(file):
     # Read the file path, then separate it into
-    # {reach: {river station: geometry}}
+    # {reach: Reach}
     with open(file, "r") as f:
         raw = f.read()
     return {
         first_line(x):
-            sep_inner(rest_lines(x))
+            sep_inner(first_line(x), rest_lines(x))
         for x in raw.split("River Reach=")[1:]
         }
