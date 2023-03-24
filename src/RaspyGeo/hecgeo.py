@@ -10,6 +10,9 @@ Define HEC-RAS geometry class(es) as a standardized format.
 """
 
 
+from copy import deepcopy
+
+
 def rs2float(rs):
     # Convert river station to float (because interpolated
     # stations are nnn.*)
@@ -89,6 +92,7 @@ class Reach(object):
         # If first/last are not specified, will use upstream and downstream
         # stations.
         # Order is from downstream to upstream.
+        # Modifies object in-place.
         to_update = [self.stations[sta] for sta in self.get_sta(first, last)]
         if len(to_update) != len(delta) and len(delta) != 1:
             raise ValueError("length of delta != number of stations")
@@ -102,6 +106,7 @@ class Reach(object):
         # Update datums from first to last.
         # If up_adj is None, update everything by down_adj.
         # Otherwise, linearly interpolate the adjustment based on the lengths.
+        # Modifies and returns a copy.
         if up_adj is None:
             return self.set_datums([down_adj], first, last)
         else:
@@ -111,12 +116,17 @@ class Reach(object):
             slope = (up_adj - down_adj) / tot_len
             lengths = [sta - to_update[0] for sta in to_update]
             delta = [down_adj + slope * dist for dist in lengths]
-            return self.set_datums(delta, first, last)
+            return deepcopy(self).set_datums(delta, first, last)
 
-    def adjust_geometry(self, geofun, first=None, last=None):
+    def set_geometry(self, geofun, first=None, last=None):
         # Apply a geometry adjustment function to selected cross-sections
+        # Modifies in place.
         to_update = [self.stations[sta] for sta in self.get_sta(first, last)]
         for ud in to_update:
             self.geometries[ud] = geofun(self.geometries[ud])
         self.re_datums()
         return self
+
+    def adjust_geometry(self, geofun, first=None, last=None):
+        # Like set_geometry; returns a copy.
+        return deepcopy(self).set_geometry(geofun, first, last)
