@@ -60,7 +60,7 @@ def daylight(xs0, ys0, start, starty, z, dirx):
           (dirx > 0 and x > start)]
     # Set direction accordingly, so start of list is closest
     xs = xs[::dirx]
-    ys = [ys0[xs0.index(x)] for x in xs]
+    ys = ys0[:len(xs)][::-1] if dirx < 0 else ys0[-len(xs):]
     # Now... iterate!
     for ix in range(len(xs)-1):
         x = xs[ix]
@@ -77,10 +77,23 @@ def daylight(xs0, ys0, start, starty, z, dirx):
             # Compute interpolation.
             # We want the total gap in X such that the current difference
             # in elevation is equal to x/(difference in slopes).
+            # However, the difference in slopes needs to be computed in terms
+            # of y/x and then converted back (i.e. something like a harmonic
+            # mean).
+            # This has three cases:
+            # Both z nonzero: gap x/y = 1/(y'/x' - y/x)
+            # Zero current z: daylight is right there
+            # Zero AFP z: gap closes at original rate
             delta_y = abs(dy - y)
             sl_current = dirx * (xn - x) / (yn - y)
-            delta_z = abs(z - sl_current)
-            return x + dirx * delta_z * delta_y
+            # delta_z = abs(z - sl_current)
+            if sl_current == 0:
+                return x
+            elif z == 0:
+                return x + dirx * sl_current * delta_y
+            else:
+                delta_z = 1/abs(1/z - 1/sl_current)
+                return x + dirx * delta_z * delta_y
         elif dyn >= max(ys):
             # Daylight line is above current geometry.
             # Interpolate x s.t. dy == max(ys)
@@ -179,10 +192,21 @@ def set_afp(
         # We now have all key points.  Next, we rebuild the coordinates
         # and specify roughness.
         # The first step is to determine what, if any, of the channel is kept.
+        # Also need a way to account for [near-]vertical walls at daylight
         keepl = [(x, ys0[ix]) for (ix, x) in enumerate(xs0)
-                 if x < (afp_tleft - 0.1)]
+                 if x < (afp_tleft - 0.1) or
+                 (
+                    # Very close horizontally and not close vertically
+                    x <= afp_tleft and
+                    (ys0[ix] - afp_tyleft) > 0.1
+                     )]
         keepr = [(x, ys0[ix]) for (ix, x) in enumerate(xs0)
-                 if x > (afp_tright + 0.1)]
+                 if x > (afp_tright + 0.1) or
+                 (
+                     x >= afp_tright and
+                    (ys0[ix] - afp_tyright) > 0.1
+                    )
+                 ]
         # Now, build the new geometry coordinates.
         co_new = [
             (afp_tleft, afp_tyleft),
