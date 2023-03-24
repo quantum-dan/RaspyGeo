@@ -90,7 +90,7 @@ def fmt_nsta(x):
     if x > 99:
         return str(x)
     else:
-        return "% 3d" % x
+        return "% 2d" % x
 
 
 def flatten(ls):
@@ -109,9 +109,9 @@ def coordinates(coords):
     # columns)
     # with header #Sta/Elev= N
     allcol = [fmt_num(x) for x in flatten(coords)]
-    block = blockify(allcol, 10)
+    block = blockify(allcol, 10) if len(allcol) > 10 else ''.join(allcol)
     npt = fmt_nsta(len(coords))
-    return "#Sta/Elev=%s \n%s" % (npt, block)
+    return "#Sta/Elev= %d \n%s" % (len(coords), block)
 
 
 def mann(ro):
@@ -176,7 +176,7 @@ def proc_reach(name, text, reaches):
     sep = "Type RM Length L Ch R = "
     chunks = text.split(sep)
     header = chunks[0]
-    return sep.join([header] + [
+    return name + "\n" + sep.join([header] + [
         edit_block(block, rch.geometries[get_rs(block)])
         for block in chunks[1:]
         ])
