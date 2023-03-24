@@ -75,6 +75,9 @@ and no more than two (three for Manning's).
 """
 
 
+from parse_geo import first_line, rest_lines, get_rs, parse
+
+
 def fmt_num(x):
     return "% 8.2f" % x
 
@@ -159,3 +162,43 @@ def edit_block(original,
         original[endbank:]
         ]
     return "\n".join([slc for slc in slices if slc != ''])
+
+
+def proc_reach(name, text, reaches):
+    # The processor function gets a name, which is the reach name
+    # (first line), and the remaining reach text.
+    # It should then be possible to loop through XS blocks,
+    # edit them accordingly, and rebuild the file.
+    # Reaches (e.g. returned by parse) have the `name` values as their
+    # keys, so that makes it easy.  Cross-sections have get_rs(block), for
+    # each block, as their key within Reach.geometries, also conveniently.
+    rch = reaches[name]
+    sep = "Type RM Length L Ch R = "
+    chunks = text.split(sep)
+    header = chunks[0]
+    return sep.join([header] + [
+        edit_block(block, rch.geometries[get_rs(block)])
+        for block in chunks[1:]
+        ])
+
+
+def read_write(file, reaches):
+    # Read the file path, then separate it into
+    # {reach: fn(name, text)}
+    with open(file, "r") as f:
+        raw = f.read()
+    with open(file + ".bak", "w") as f:
+        f.write(raw)
+    chunks = raw.split("River Reach=")
+    data = "River Reach=".join([chunks[0]] + [
+        proc_reach(first_line(x), rest_lines(x), reaches)
+        for x in chunks[1:]])
+    with open(file, "w") as f:
+        f.write(data)
+
+
+def read_modify(file, modfns):
+    # modfns => {reach name: f(Reach)} where f modifies the Reach as desired.
+    reaches = parse(file)
+    newrch = {modfns[rch](reaches[rch]) for rch in reaches}
+    read_write(file, newrch)
