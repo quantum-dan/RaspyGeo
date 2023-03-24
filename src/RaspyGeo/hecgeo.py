@@ -54,6 +54,16 @@ class Geometry(object):
                 (self.banks[0] + self.offset, self.banks[1] + self.offset)
             }
 
+    def update(self, geofun):
+        # Update (in place) with a geometry function
+        (self.coordinates, self.roughness, self.banks) = geofun(
+            self.coordinates, self.roughness, self.banks)
+        return self
+
+    def adjusted(self, geofun):
+        # Return updated copy with geometry function
+        return deepcopy(self).update(geofun)
+
 
 class Reach(object):
     # Define a Reach class to easily track datums, etc.
@@ -123,7 +133,7 @@ class Reach(object):
         # Modifies in place.
         to_update = [self.stations[sta] for sta in self.get_sta(first, last)]
         for ud in to_update:
-            self.geometries[ud] = geofun(self.geometries[ud])
+            self.geometries[ud] = self.geometries[ud].update(geofun)
         self.re_datums()
         return self
 

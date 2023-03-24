@@ -6,14 +6,23 @@ Created on Fri Mar 24 09:38:05 2023
 """
 
 """
-Display utilities.
+Display utilities and testing.
 """
 
 import matplotlib.pyplot as plt
 from parse_geo import parse
+from geofun import set_afp, set_lfc
 
 
 cols = 'bgrcmk'
+
+
+def test_afp():
+    return set_afp(6, 1, 4, lambda w: w/2, 6, 0.017, 0.15, 0.1, 0.035)
+
+
+def test_lfc():
+    return set_lfc(10, 1, 4, 0.035, 0.1)
 
 
 def test_reach():
@@ -36,7 +45,7 @@ def plot_xs(xses):
         bst_x = geo["banks"]
         bst_y = [y[x.index(bx)] for bx in bst_x]
         ax.plot(x, y, color=cols[ix], label=nm)
-        ax.scatter(bst_x, bst_y, color="red", label=nm + " Banks")
+        ax.scatter(bst_x, bst_y, color=cols[ix], label=nm + " Banks")
     ax.set(xlabel='Station', ylabel='Elevation')
     ax.legend()
     fig.show()
