@@ -85,7 +85,7 @@ def daylight(xs0, ys0, start, starty, z, dirx):
             # Zero current z: daylight is right there
             # Zero AFP z: gap closes at original rate
             delta_y = abs(dy - y)
-            sl_current = dirx * (xn - x) / (yn - y)
+            sl_current = dirx * (xn - x) / (yn - y) if yn - y != 0 else 99999
             # delta_z = abs(z - sl_current)
             if sl_current == 0:
                 return x

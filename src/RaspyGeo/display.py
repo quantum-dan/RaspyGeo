@@ -12,9 +12,36 @@ Display utilities and testing.
 import matplotlib.pyplot as plt
 from parse_geo import parse
 from geofun import set_afp, set_lfc
+from write_geo import read_modify
 
 
 cols = 'bgrcmk'
+
+
+tkeys = ['Compton Creek   ,CC              ',
+         'Rio Hondo Chnl  ,RHC             ',
+         'Upper LA River  ,Above RH        ',
+         'Upper LA River  ,RH to CC        ',
+         'LA River        ,Below CC        ']
+
+
+test_mods = {
+    tkeys[0]: lambda x: x
+                .adjust_geometry(
+                set_afp(4, 1, 2, lambda w: w/3, 4, 0.1, 0.15, 0.1, 0.035)),
+    tkeys[1]: lambda x: x
+                .adjust_geometry(
+                set_afp(8, 2, 4, lambda w: 10, 2, 0.1, 0.15, 0.1, 0.5),
+                10000, 40000),
+    tkeys[2]: lambda x: x
+                .adjust_datums(0, -10, 80000, 120000)
+                .adjust_geometry(
+                set_afp(16, 0.5, 1, lambda w: w*0.75, 6, 0.017, 0.2, 0.1, 0.5))
+    }
+
+
+def testrun():
+    read_modify('../../test.geo', test_mods, '../../test.edit.geo')
 
 
 def test_afp():

@@ -182,9 +182,10 @@ def proc_reach(name, text, reaches):
         ])
 
 
-def read_write(file, reaches):
+def read_write(file, reaches, out=None):
     # Read the file path, then separate it into
     # {reach: fn(name, text)}
+    out = out if out is not None else file
     with open(file, "r") as f:
         raw = f.read()
     with open(file + ".bak", "w") as f:
@@ -193,12 +194,14 @@ def read_write(file, reaches):
     data = "River Reach=".join([chunks[0]] + [
         proc_reach(first_line(x), rest_lines(x), reaches)
         for x in chunks[1:]])
-    with open(file, "w") as f:
+    with open(out, "w") as f:
         f.write(data)
 
 
-def read_modify(file, modfns):
+def read_modify(file, modfns, out=None):
     # modfns => {reach name: f(Reach)} where f modifies the Reach as desired.
     reaches = parse(file)
-    newrch = {modfns[rch](reaches[rch]) for rch in reaches}
-    read_write(file, newrch)
+    newrch = {rch: modfns[rch](reaches[rch])
+              if rch in modfns else reaches[rch]
+              for rch in reaches}
+    read_write(file, newrch, out)
