@@ -3,7 +3,15 @@ Automated geometry scenario runner (loosely analogous to the Geometry Editor too
 
 # Usage
 
-Will be filled out when there is actual software to use.
+Currently, there is not a scenario runner, so the workflow does involve a manual
+step.  The basic workflow is:
+
+1. Specify a list of scenarios to run as geometry functions (see example in
+`iterate.py`).
+2. Use `iterate.py`'s `run` function to run through geometry scenarios.
+3. Keeping the HEC-RAS model, geometry editor, runner, and profile summary viewer
+open, for each scenario, reopen the geometry file, run, and retrieve results.
+4. Come back to Python and hit enter to set the next scenario.
 
 # Plans
 
