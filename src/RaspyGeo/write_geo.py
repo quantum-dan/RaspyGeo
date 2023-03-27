@@ -100,7 +100,7 @@ def flatten(ls):
 def blockify(ls, N):
     return '\n'.join([
         ''.join(ls[k:min(k+N, len(ls))])
-        for k in range(0, len(ls)-(N-1), N)
+        for k in range(0, len(ls), N)
         ])
 
 

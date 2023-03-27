@@ -25,8 +25,8 @@ def plot_xs(xses):
         y = [i[1] for i in geo["coordinates"]]
         bst_x = geo["banks"]
         bst_y = [y[x.index(bx)] if bx in x else 0 for bx in bst_x]
-        ax.plot(x, y, color=cols[ix], label=nm)
-        ax.scatter(bst_x, bst_y, color=cols[ix], label=nm + " Banks")
+        ax.plot(x, y, color=cols[ix % len(cols)], label=nm)
+        ax.scatter(bst_x, bst_y, color=cols[ix % len(cols)], label=nm + " Banks")
     ax.set(xlabel='Station', ylabel='Elevation')
     ax.legend()
     fig.show()
