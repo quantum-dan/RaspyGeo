@@ -75,7 +75,7 @@ and no more than two (three for Manning's).
 """
 
 
-from RaspyGeo.parse_geo import first_line, rest_lines, get_rs, parse
+from RaspyGeo.parse_geo import first_line, rest_lines, get_rs, parse, mk_name
 
 
 def fmt_num(x):
@@ -104,13 +104,20 @@ def blockify(ls, N):
         ])
 
 
+def fmt_name(rchn):
+    # Reach name -> HEC-RAS format: river and reach 16 characters,
+    # left- and right-aligned, space-padded, comma separated
+    ls = rchn.split(",")
+    return ls[0] + " " * (16 - len(ls[0])) + "," + " " * (16 - len(ls[1])) +\
+        ls[1]
+
+
 def coordinates(coords):
     # Convert coordinates [(X,Y)] to the geometry block (10 fixed-width
     # columns)
     # with header #Sta/Elev= N
     allcol = [fmt_num(x) for x in flatten(coords)]
     block = blockify(allcol, 10) if len(allcol) > 10 else ''.join(allcol)
-    npt = fmt_nsta(len(coords))
     return "#Sta/Elev= %d \n%s" % (len(coords), block)
 
 
@@ -172,7 +179,7 @@ def proc_reach(name, text, reaches):
     # Reaches (e.g. returned by parse) have the `name` values as their
     # keys, so that makes it easy.  Cross-sections have get_rs(block), for
     # each block, as their key within Reach.geometries, also conveniently.
-    rch = reaches[name]
+    rch = reaches[mk_name(name)]
     sep = "Type RM Length L Ch R = "
     chunks = text.split(sep)
     header = chunks[0]

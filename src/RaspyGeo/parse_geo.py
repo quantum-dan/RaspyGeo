@@ -62,6 +62,10 @@ To write, it will be necessary to:
 from RaspyGeo.hecgeo import Geometry, Reach
 
 
+def mk_name(raw):
+    return ",".join([i.strip() for i in raw.split(",")])
+
+
 def first_line(text):
     return text[:text.find("\n")]
 
@@ -119,7 +123,7 @@ def parse(file):
     with open(file, "r") as f:
         raw = f.read()
     return {
-        first_line(x):
-            sep_inner(first_line(x), rest_lines(x))
+        mk_name(first_line(x)):
+            sep_inner(mk_name(first_line(x)), rest_lines(x))
         for x in raw.split("River Reach=")[1:]
         }

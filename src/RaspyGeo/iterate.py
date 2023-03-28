@@ -75,17 +75,19 @@ def scenario_data(ras, nprof, locations, scenario):
         ]
 
 
-def run(ras, locations, nprof, ingeo, outgeo, outfile, scenarios):
-    # ras -> API object
+def run(projPath, ingeo, outgeo, outfile, locations, nprof, scenarios):
+    # projPath -> project location
     # locations -> [[identifier, river, reach, rs]] for data retrieval
     # Loop through scenarios, set geometry, run simulation, and retrieve data.
     # Scenarios should be a dictionary with labels.  These are used for
     # writing.
     # `outfile` will be overwritten.
+    ras = API(Ras(projPath))
     with open(outfile, "w") as f:
         f.write(cols)
         for scen in scenarios:
             read_modify(ingeo, scenarios[scen], outgeo)
+            ras.ops.openProject(projPath)
             ras.ops.compute()
             f.write("\n".join(
                 scenario_data(ras, nprof, locations, scen)) + "\n")
