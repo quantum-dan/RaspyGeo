@@ -59,7 +59,7 @@ To write, it will be necessary to:
 """
 
 
-from hecgeo import Geometry, Reach
+from RaspyGeo.hecgeo import Geometry, Reach
 
 
 def first_line(text):

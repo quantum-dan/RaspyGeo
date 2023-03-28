@@ -9,11 +9,10 @@ Created on Fri Mar 24 09:38:05 2023
 Display utilities and testing.
 """
 
-from parse_geo import parse
-from geofun import set_afp, set_lfc
-from write_geo import read_modify
-from display import *
-from scenario import *
+from RaspyGeo.parse_geo import parse
+from RaspyGeo.geofun import set_afp, set_lfc
+from RaspyGeo.write_geo import read_modify
+from RaspyGeo.display import *
 
 
 tkeys = ['Compton Creek   ,CC              ',

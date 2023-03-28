@@ -75,7 +75,7 @@ and no more than two (three for Manning's).
 """
 
 
-from parse_geo import first_line, rest_lines, get_rs, parse
+from RaspyGeo.parse_geo import first_line, rest_lines, get_rs, parse
 
 
 def fmt_num(x):

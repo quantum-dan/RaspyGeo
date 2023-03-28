@@ -1,1 +1,1 @@
-from hecgeo import Geometry
+from RaspyGeo.hecgeo import Geometry
