@@ -75,14 +75,15 @@ def scenario_data(ras, nprof, locations, scenario):
         ]
 
 
-def run(projPath, ingeo, outgeo, outfile, locations, nprof, scenarios):
+def run(projPath, ingeo, outgeo, outfile, locations, nprof, scenarios,
+        which="507"):
     # projPath -> project location
     # locations -> [[identifier, river, reach, rs]] for data retrieval
     # Loop through scenarios, set geometry, run simulation, and retrieve data.
     # Scenarios should be a dictionary with labels.  These are used for
     # writing.
     # `outfile` will be overwritten.
-    ras = API(Ras(projPath))
+    ras = API(Ras(projPath, which=which))
     with open(outfile, "w") as f:
         f.write(cols)
         for scen in scenarios:

@@ -185,6 +185,9 @@ def proc_reach(name, text, reaches):
     header = chunks[0]
     return name + "\n" + sep.join([header] + [
         edit_block(block, rch.geometries[get_rs(block)])
+        # If it is not in the geometry (e.g. a bridge), just return the
+        # old one.
+        if get_rs(block) in rch.geometries else block
         for block in chunks[1:]
         ])
 

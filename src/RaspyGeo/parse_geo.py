@@ -114,6 +114,10 @@ def sep_inner(name, text):
     return Reach(name, {
         get_rs(x): make_geo(rest_lines(x))
         for x in text.split("Type RM Length L Ch R = ")[1:]
+        # Filter: exclude XSes missing data (e.g. bridges)
+        if rest_lines(x).find("Bank Sta=") >= 0
+        and rest_lines(x).find("#Sta/Elev=") >= 0
+        and rest_lines(x).find("#Mann=") >= 0
         })
 
 
@@ -122,6 +126,9 @@ def parse(file):
     # {reach: fn(name, text)}
     with open(file, "r") as f:
         raw = f.read()
+    # Edge cases go here
+    # Prevents channel modification alternatives from causing problems
+    raw = raw.split("CM Alternative")[0]
     return {
         mk_name(first_line(x)):
             sep_inner(mk_name(first_line(x)), rest_lines(x))
