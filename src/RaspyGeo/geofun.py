@@ -225,10 +225,10 @@ def set_afp(
         # Next, the roughness coordinates.  As before, we keep any
         # sets in the kept geometry from the left.  From the right it is
         # more complicated, as we must also propagate correctly.
-        nkeepl = keepl = [(x, ron0[rox0.index(x)]) for x in rox0
-                          if x < afp_tleft]
-        nkeepr = keepl = [(x, ron0[rox0.index(x)]) for x in rox0
-                          if x > afp_tright]
+        nkeepl = [(x, ron0[rox0.index(x)]) for x in rox0
+                  if x < afp_tleft]
+        nkeepr = [(x, ron0[rox0.index(x)]) for x in rox0
+                  if x > afp_tright]
         # Right-most coordinate that is left of the AFP edge.
         proprox = [rx for rx in rox0 if rx <= afp_tright][-1]
         propn = ron0[rox0.index(proprox)]
@@ -284,20 +284,22 @@ def set_lfc(
                  if x > (lfc_tright + 0.1)]
         # Now, build the new geometry coordinates.
         co_new = [
-            (keepl[-1][0], lfc_ty),
+            (keepl[-1][0] if len(keepl) > 0 else min(min(xs0), lfc_tleft),
+             lfc_ty),
             (lfc_tleft, lfc_ty),
             (lfc_bleft, lfc_by),
             (lfc_bright, lfc_by),
             (lfc_tright, lfc_ty),
-            (keepr[0][0], lfc_ty)
+            (keepr[0][0] if len(keepr) > 0 else max(max(xs0), lfc_tright),
+             lfc_ty)
             ]
         # co_out = sorted(keepl + co_new + keepr,
         #                 key = lambda x: x[0])
         co_out = keepl[:-1] + co_new + keepr[1:]
-        nkeepl = keepl = [(x, ron0[rox0.index(x)]) for x in rox0
-                          if x < (lfc_tleft - 0.1)]
-        nkeepr = keepl = [(x, ron0[rox0.index(x)]) for x in rox0
-                          if x > (lfc_tright + 0.1)]
+        nkeepl = [(x, ron0[rox0.index(x)]) for x in rox0
+                  if x < (lfc_tleft - 0.1)]
+        nkeepr = [(x, ron0[rox0.index(x)]) for x in rox0
+                  if x > (lfc_tright + 0.1)]
         # Right-most coordinate that is left of the AFP edge.
         proprox = [rx for rx in rox0 if rx <= lfc_tright][-1]
         propn = ron0[rox0.index(proprox)]
