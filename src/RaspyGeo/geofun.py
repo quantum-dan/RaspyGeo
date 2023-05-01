@@ -141,7 +141,7 @@ def set_afp(
     """
     def geofun(coordinates, roughness, banks):
         xs0 = [co[0] for co in coordinates]
-        ys0 = [co[1] for co in coordinates]
+        ys0 = [co[1] + lfc_h for co in coordinates]
         rox0 = [ro[0] for ro in roughness]
         ron0 = [ro[1] for ro in roughness]
         # First: identify center
@@ -150,7 +150,7 @@ def set_afp(
         # LFC bottom
         lfc_bleft = centx - lfc_w / 2
         lfc_bright = centx + lfc_w / 2
-        lfc_by = min(ys0)
+        lfc_by = min(ys0) - lfc_h
         # LFC side slopes
         lfc_sw = lfc_z * lfc_h
         lfc_tleft = lfc_bleft - lfc_sw
@@ -181,8 +181,12 @@ def set_afp(
         afp_tleft = daylight(xs0, ys0, afp_bleft,
                              lfc_ty, afp_z, -1) if avail > 0 else \
             afp_bleft - 0.1
+        afp_tleft = afp_tleft if afp_bleft - afp_tleft > 0.01 else \
+            afp_bleft - 0.1
         afp_tright = daylight(xs0, ys0, afp_bright,
                               lfc_ty, afp_z, 1) if avail > 0 else \
+            afp_bright + 0.1
+        afp_tright = afp_tright if afp_tright - afp_bright > 0.01 else \
             afp_bright + 0.1
         # Compute height based on side slope width and slope
         afp_tyleft = lfc_ty + (afp_bleft - afp_tleft) / afp_z if \
@@ -261,7 +265,7 @@ def set_lfc(
     """
     def geofun(coordinates, roughness, banks):
         xs0 = [co[0] for co in coordinates]
-        ys0 = [co[1] for co in coordinates]
+        ys0 = [co[1] + lfc_h for co in coordinates]
         rox0 = [ro[0] for ro in roughness]
         ron0 = [ro[1] for ro in roughness]
         # First: identify center
@@ -270,7 +274,7 @@ def set_lfc(
         # LFC bottom
         lfc_bleft = centx - lfc_w / 2
         lfc_bright = centx + lfc_w / 2
-        lfc_by = min(ys0)
+        lfc_by = min(ys0) - lfc_h
         # LFC side slopes
         lfc_sw = lfc_z * lfc_h
         lfc_tleft = lfc_bleft - lfc_sw
@@ -283,16 +287,12 @@ def set_lfc(
         keepr = [(x, ys0[ix]) for (ix, x) in enumerate(xs0)
                  if x > (lfc_tright + 0.1)]
         # Now, build the new geometry coordinates.
-        co_new = [
-            (keepl[-1][0] if len(keepl) > 0 else min(min(xs0), lfc_tleft),
-             lfc_ty),
-            (lfc_tleft, lfc_ty),
-            (lfc_bleft, lfc_by),
-            (lfc_bright, lfc_by),
-            (lfc_tright, lfc_ty),
-            (keepr[0][0] if len(keepr) > 0 else max(max(xs0), lfc_tright),
-             lfc_ty)
-            ]
+        co_new = ([(keepl[-1][0], lfc_ty)] if len(keepl) > 0 else []) +\
+            [(lfc_tleft, lfc_ty),
+             (lfc_bleft, lfc_by),
+             (lfc_bright, lfc_by),
+             (lfc_tright, lfc_ty)] +\
+            ([(keepr[0][0], lfc_ty)] if len(keepr) > 0 else [])
         # co_out = sorted(keepl + co_new + keepr,
         #                 key = lambda x: x[0])
         co_out = keepl[:-1] + co_new + keepr[1:]
@@ -300,6 +300,9 @@ def set_lfc(
                   if x < (lfc_tleft - 0.1)]
         nkeepr = [(x, ron0[rox0.index(x)]) for x in rox0
                   if x > (lfc_tright + 0.1)]
+        # Also need to find the roughness to continue with.
+        xnresume = max([x for x in rox0 if x < lfc_tright])
+        nresume = ron0[rox0.index(xnresume)]
         # Right-most coordinate that is left of the AFP edge.
         proprox = [rx for rx in rox0 if rx <= lfc_tright][-1]
         propn = ron0[rox0.index(proprox)]
@@ -307,7 +310,8 @@ def set_lfc(
         ro_new = [
             (lfc_tleft, side_n),
             (lfc_bleft, bot_n),
-            (lfc_bright, side_n)
+            (lfc_bright, side_n),
+            (lfc_tright, nresume)
             ]
         ro_out = sorted(nkeepl + ro_new + nkeepr,
                         key = lambda x: x[0])

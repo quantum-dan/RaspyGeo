@@ -43,6 +43,29 @@ def row_join(row):
     return ",".join([str(r) for r in row])
 
 
+def twovalfix(vals, maxC=False, av=False):
+    # Sometimes HEC-RAS will return just two values.  This fixes it to
+    # distribute them across the overbanks and MC.
+    # If maxC (max center), the max value goes in the MC, and the missing
+    # value is set to 0.
+    # If av (average), then all three are set to the mean.
+    # If both are false, then it just returns three NAs.
+    if len(vals) == 3:
+        return vals
+    if len(vals) == 1:
+        return [0, vals[0], 0]
+    if maxC:
+        if vals[0] > vals[1]:  # larger is left
+            return [0] + vals
+        else:  # larger is right
+            return vals + [0]
+    if av:
+        mean = sum(vals)/len(vals)
+        return [mean, mean, mean]
+    else:
+        return ["NA", "NA", "NA"]
+
+
 def loc_data(ras, nprof, loc, scenario):
     # loc -> [identifier, river, reach, rs]
     # Returns [formatted row according to `cols`] for a single location
@@ -59,9 +82,9 @@ def loc_data(ras, nprof, loc, scenario):
     return [row_join(
         [scenario, ident, riv, rch, rs,
          sum(fd.flow)] +
-        fd.shear +
-        fd.velocity +
-        fd.maxDepth
+        twovalfix(fd.shear, av=True) +
+        twovalfix(fd.velocity, maxC=True) +
+        twovalfix(fd.maxDepth, maxC=True)
         ) for fd in flow_data.values()]
 
 

@@ -1,5 +1,10 @@
 # RaspyGeo
-Automated geometry scenario runner (loosely analogous to the Geometry Editor tool) for HEC-RAS.  Depends on Raspy (`raspy-auto` on PyPI).  Works for steady-state simulations.
+Automated geometry scenario runner (loosely analogous to the Geometry Modification tool) for HEC-RAS.  Depends on Raspy (`raspy-auto` on PyPI).  Currently works for steady-state simulations.
+
+# Updates and Added Features
+
+If additional capabilities would be useful to you, open an Issue and I will check
+into it.  Otherwise, I develop updates as I need them.
 
 # Usage
 
