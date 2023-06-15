@@ -110,6 +110,7 @@ def set_afp(
         lfc_h,
         lfc_z,
         afp_wfun,
+        afp_h,
         afp_z,
         afpside_n,
         afp_n,
@@ -132,7 +133,8 @@ def set_afp(
             (allowing either constant
             or fraction, etc.)  This is provided as half-width, i.e.
             available per side.
-        - Daylight slope (AFP side slope) roughness
+        - AFP height; above the AFP height, it will daylight horizontally
+        - AFP side slope roughness
         - AFP roughness
         - LFC side slope roughness
         - LFC bottom roughness
@@ -178,14 +180,26 @@ def set_afp(
         # the daylight point gets its own function, for simplicity.
         # daylight(x, y, start, z, direction) returns the x-coordinate of
         # daylight.
+        # If the channel is close, just daylight it.  Otherwise, use
+        # the AFP height.
+        #
+        # Current bugs:
+            # Not setting n at AFP-outer if it is the channel edge
+            # Duplicate points at AFP-outer
+            # Sometimes just randomly losing roughness?
+        afp_dx = afp_h * afp_z
         afp_tleft = daylight(xs0, ys0, afp_bleft,
                              lfc_ty, afp_z, -1) if avail > 0 else \
             afp_bleft - 0.1
+        afp_tleft = afp_tleft if afp_bleft - afp_tleft <= afp_dx else \
+            afp_bleft - afp_dx
         afp_tleft = afp_tleft if afp_bleft - afp_tleft > 0.01 else \
             afp_bleft - 0.1
         afp_tright = daylight(xs0, ys0, afp_bright,
                               lfc_ty, afp_z, 1) if avail > 0 else \
             afp_bright + 0.1
+        afp_tright = afp_tright if afp_tright - afp_bright <= afp_dx else \
+            afp_bright + afp_dx
         afp_tright = afp_tright if afp_tright - afp_bright > 0.01 else \
             afp_bright + 0.1
         # Compute height based on side slope width and slope
@@ -193,6 +207,10 @@ def set_afp(
             avail > 0 else lfc_ty
         afp_tyright = lfc_ty + (afp_tright - afp_bright) / afp_z if \
             avail > 0 else lfc_ty
+
+        # Next, find the outer points for a flat main channel.
+        # afp_oleft = daylight(xs0, ys0, afp_tleft, afp_tyleft, 999, -1)
+        # afp_oright = daylight(xs0, ys0, afp_tright, afp_tyright, 999, 1)
         # We now have all key points.  Next, we rebuild the coordinates
         # and specify roughness.
         # The first step is to determine what, if any, of the channel is kept.
