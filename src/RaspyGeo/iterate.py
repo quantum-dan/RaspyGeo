@@ -59,7 +59,7 @@ def twovalfix(vals, maxC=False, av=False):
             return [0] + vals
         else:  # larger is right
             return vals + [0]
-    if av:
+    if av and len(vals) > 0:
         mean = sum(vals)/len(vals)
         return [mean, mean, mean]
     else:
